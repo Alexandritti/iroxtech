@@ -3,6 +3,7 @@ import {ArrowUpRight,Upload,Menu,X,ScanLine,Bot,Truck,Flame,ChevronRight} from '
 import {Fragment,useEffect,useState} from 'react';
 import {LANGS,copy,solutionMeta,stepMeta,metrics} from './copy';
 
+const LEAD_URL = 'https://functions.yandexcloud.net/d4ephi82ae2rlm51rgco';
 const icons = [Bot, Flame, Truck, ScanLine];
 const navHref = ['#solutions', '#process', '#economics', '#contact'];
 
@@ -40,6 +41,8 @@ function Title({lines}) {
 export default function Home() {
   const [lang, setLang] = useState('ru');
   const [open, setOpen] = useState(false);
+  const [lead, setLead] = useState('idle');
+  const [video, setVideo] = useState(false);
   const t = copy[lang];
 
   useEffect(() => {
@@ -152,17 +155,30 @@ export default function Home() {
           <p>{t.leadText}</p>
           <ol>{t.leadList.map((item) => <li key={item}>{item}</li>)}</ol>
         </div>
-        <form onSubmit={(e) => e.preventDefault()}>
-          {t.fields.map(([label, placeholder, type]) => (
-            <label key={label}>{label}<input type={type} placeholder={placeholder}/></label>
+        <form method="post" action="#lead" onSubmit={async (e) => {
+            e.preventDefault();
+            if (lead === 'sending') return;
+            const data = new FormData(e.currentTarget);
+            const body = Object.fromEntries(['name', 'company', 'contact', 'email', 'about'].map((key) => [key, data.get(key) || '']));
+            setLead('sending');
+            try {
+              const res = await fetch(LEAD_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+              setLead(res.ok ? 'ok' : 'error');
+            } catch {
+              setLead('error');
+            }
+          }}>
+          {t.fields.map(([label, placeholder, type, name]) => (
+            <label key={name}>{label}<input name={name} type={type} placeholder={placeholder} required={name === 'name' || name === 'contact'}/></label>
           ))}
-          <label>{t.about[0]}<textarea placeholder={t.about[1]}/></label>
+          <label>{t.about[0]}<textarea name="about" placeholder={t.about[1]}/></label>
           <label className="upload">
             <Upload/>
             <span><b>{t.upload[0]}</b><small>{t.upload[1]}</small></span>
-            <input type="file" accept="video/*"/>
+            <input type="file" accept="video/*" onChange={(e) => setVideo(Boolean(e.target.files?.length))}/>
           </label>
-          <button type="submit">{t.submit} <ArrowUpRight/></button>
+          <button type="submit" disabled={lead === 'sending'}>{lead === 'sending' ? t.formStatus.sending : t.submit} <ArrowUpRight/></button>
+          {lead === 'ok' || lead === 'error' ? <small className={lead === 'error' ? 'note bad' : 'note'}>{t.formStatus[lead]}{lead === 'ok' && video ? ` ${t.formStatus.video}` : ''}</small> : null}
           <small className="privacy">{t.privacy}</small>
         </form>
       </section>
