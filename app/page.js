@@ -4,6 +4,36 @@ import {Fragment,useEffect,useState} from 'react';
 import {LANGS,copy,solutionMeta,stepMeta,metrics} from './copy';
 
 const LEAD_URL = 'https://functions.yandexcloud.net/d4ephi82ae2rlm51rgco';
+
+function putWithProgress(url, file, type, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', url);
+    xhr.setRequestHeader('Content-Type', type);
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable || !event.total) return;
+      onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+    };
+    xhr.onload = () => resolve(xhr.status);
+    xhr.onerror = () => resolve(0);
+    xhr.send(file);
+  });
+}
+
+function Ring({value}) {
+  const r = 15.5;
+  const c = 2 * Math.PI * r;
+  const shown = Math.max(0, Math.min(100, value));
+  return (
+    <span className="ring" role="progressbar" aria-valuenow={shown} aria-valuemin={0} aria-valuemax={100}>
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <circle className="track" cx="20" cy="20" r={r}/>
+        <circle className="bar" cx="20" cy="20" r={r} strokeDasharray={c} strokeDashoffset={c - (shown / 100) * c}/>
+      </svg>
+      <b>{shown}<small>%</small></b>
+    </span>
+  );
+}
 const icons = [Bot, Flame, Truck, ScanLine];
 const navHref = ['#solutions', '#process', '#economics', '#contact'];
 
@@ -43,6 +73,7 @@ export default function Home() {
   const [open, setOpen] = useState(false);
   const [lead, setLead] = useState('idle');
   const [fileName, setFileName] = useState('');
+  const [pct, setPct] = useState(null);
   const t = copy[lang];
 
   useEffect(() => {
@@ -161,21 +192,25 @@ export default function Home() {
             const data = new FormData(e.currentTarget);
             const body = Object.fromEntries(['name', 'company', 'contact', 'email', 'about'].map((key) => [key, data.get(key) || '']));
             const file = data.get('video');
+            setPct(null);
             setLead('sending');
             try {
               if (file && file.size) {
                 if (file.size > 100 * 1024 * 1024) { setLead('tooBig'); return; }
                 const type = file.type || 'application/octet-stream';
+                setPct(0);
                 const signRes = await fetch(LEAD_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({op: 'sign', name: file.name, type, size: file.size})});
-                if (!signRes.ok) { setLead('videoFail'); return; }
+                if (!signRes.ok) { setPct(null); setLead('videoFail'); return; }
                 const signed = await signRes.json();
-                const put = await fetch(signed.uploadUrl, {method: 'PUT', headers: {'Content-Type': type}, body: file});
-                if (!put.ok) { setLead('videoFail'); return; }
+                const status = await putWithProgress(signed.uploadUrl, file, type, setPct);
+                if (status < 200 || status >= 300) { setPct(null); setLead('videoFail'); return; }
                 body.videoUrl = signed.videoUrl;
               }
               const res = await fetch(LEAD_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+              setPct(null);
               setLead(res.ok ? 'ok' : 'error');
             } catch {
+              setPct(null);
               setLead('error');
             }
           }}>
@@ -184,7 +219,7 @@ export default function Home() {
           ))}
           <label>{t.about[0]}<textarea name="about" placeholder={t.about[1]}/></label>
           <label className="upload">
-            <Upload/>
+            {pct === null ? <Upload/> : <Ring value={pct}/>}
             <span><b>{t.upload[0]}</b><small>{fileName || t.upload[1]}</small></span>
             <input name="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" onChange={(e) => setFileName(e.target.files?.[0]?.name || '')}/>
           </label>
