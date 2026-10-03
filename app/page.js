@@ -1,5 +1,5 @@
 'use client';
-import {ArrowUpRight,Upload,Menu,X,ScanLine,Bot,Truck,Flame,ChevronRight} from 'lucide-react';
+import {ArrowUpRight,Upload,Menu,X,ScanLine,Bot,Truck,Flame,ChevronRight,Check} from 'lucide-react';
 import {Fragment,useEffect,useState} from 'react';
 import {LANGS,copy,solutionMeta,stepMeta,metrics} from './copy';
 
@@ -189,8 +189,15 @@ export default function Home() {
             <input name="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" onChange={(e) => setFileName(e.target.files?.[0]?.name || '')}/>
           </label>
           <button type="submit" disabled={lead === 'sending'}>{lead === 'sending' ? t.formStatus.sending : t.submit} <ArrowUpRight/></button>
-          {lead !== 'idle' && lead !== 'sending' ? <small className={lead === 'ok' ? 'note' : 'note bad'}>{t.formStatus[lead]}</small> : null}
+          {lead !== 'idle' && lead !== 'sending' && lead !== 'ok' ? <small className="note bad">{t.formStatus[lead]}</small> : null}
           <small className="privacy">{t.privacy}</small>
+          {lead === 'ok' ? (
+            <div className="sent" role="status">
+              <span className="tick" aria-hidden="true"><Check strokeWidth={2.6}/></span>
+              <b>{t.formStatus.okTitle}</b>
+              <span>{t.formStatus.okText}</span>
+            </div>
+          ) : null}
         </form>
       </section>
 

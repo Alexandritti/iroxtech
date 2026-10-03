@@ -59,7 +59,8 @@ export const copy = {
     ],
     formStatus: {
       sending: 'ОТПРАВКА',
-      ok: 'Заявка отправлена.',
+      okTitle: 'Успешно отправлено',
+      okText: 'Мы свяжемся с вами в ближайшее время.',
       error: 'Не отправилось. Напишите на hello@iroxtech.ru',
       videoFail: 'Видео не загрузилось. Заявка не отправлена.',
       tooBig: 'Видео больше 100 МБ.',
@@ -113,7 +114,8 @@ export const copy = {
     ],
     formStatus: {
       sending: 'SENDING',
-      ok: 'Request sent.',
+      okTitle: 'Sent successfully',
+      okText: 'We will contact you shortly.',
       error: 'Not sent. Write to hello@iroxtech.ru',
       videoFail: 'The video did not upload. The request was not sent.',
       tooBig: 'The video is larger than 100 MB.',
@@ -167,7 +169,8 @@ export const copy = {
     ],
     formStatus: {
       sending: '发送中',
-      ok: '申请已发送。',
+      okTitle: '已成功发送',
+      okText: '我们将尽快与您联系。',
       error: '没有发出。请写到 hello@iroxtech.ru',
       videoFail: '视频没有上传。申请未发送。',
       tooBig: '视频超过 100 MB。',
