@@ -54,7 +54,7 @@ export const copy = {
     fields: [
       ['ИМЯ', 'Александр', 'text'],
       ['КОМПАНИЯ', 'Название компании', 'text'],
-      ['ТЕЛЕФОН / TELEGRAM', '+7 999 000-00-00', 'text'],
+      ['ТЕЛЕФОН / TELEGRAM / WECHAT', '+7 999 000-00-00', 'text'],
       ['E-MAIL', 'name@company.ru', 'email'],
     ],
     about: ['ЧТО ХОТИТЕ РОБОТИЗИРОВАТЬ?', 'Коротко опишите операцию'],
@@ -101,7 +101,7 @@ export const copy = {
     fields: [
       ['NAME', 'Alex', 'text'],
       ['COMPANY', 'Company name', 'text'],
-      ['PHONE / TELEGRAM', '+7 999 000-00-00', 'text'],
+      ['PHONE / TELEGRAM / WECHAT', '+7 999 000-00-00', 'text'],
       ['E-MAIL', 'name@company.com', 'email'],
     ],
     about: ['WHAT DO YOU WANT TO ROBOTIZE?', 'Briefly describe the operation'],
@@ -148,7 +148,7 @@ export const copy = {
     fields: [
       ['姓名', '李明', 'text'],
       ['公司', '公司名称', 'text'],
-      ['电话 / TELEGRAM', '+86 000 0000 0000', 'text'],
+      ['电话 / TELEGRAM / WECHAT', '+86 000 0000 0000', 'text'],
       ['邮箱', 'name@company.cn', 'email'],
     ],
     about: ['想把什么机器人化？', '简要描述这项作业'],
