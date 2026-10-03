@@ -42,7 +42,7 @@ export default function Home() {
   const [lang, setLang] = useState('ru');
   const [open, setOpen] = useState(false);
   const [lead, setLead] = useState('idle');
-  const [video, setVideo] = useState(false);
+  const [fileName, setFileName] = useState('');
   const t = copy[lang];
 
   useEffect(() => {
@@ -160,8 +160,19 @@ export default function Home() {
             if (lead === 'sending') return;
             const data = new FormData(e.currentTarget);
             const body = Object.fromEntries(['name', 'company', 'contact', 'email', 'about'].map((key) => [key, data.get(key) || '']));
+            const file = data.get('video');
             setLead('sending');
             try {
+              if (file && file.size) {
+                if (file.size > 100 * 1024 * 1024) { setLead('tooBig'); return; }
+                const type = file.type || 'application/octet-stream';
+                const signRes = await fetch(LEAD_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({op: 'sign', name: file.name, type, size: file.size})});
+                if (!signRes.ok) { setLead('videoFail'); return; }
+                const signed = await signRes.json();
+                const put = await fetch(signed.uploadUrl, {method: 'PUT', headers: {'Content-Type': type}, body: file});
+                if (!put.ok) { setLead('videoFail'); return; }
+                body.videoUrl = signed.videoUrl;
+              }
               const res = await fetch(LEAD_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
               setLead(res.ok ? 'ok' : 'error');
             } catch {
@@ -174,11 +185,11 @@ export default function Home() {
           <label>{t.about[0]}<textarea name="about" placeholder={t.about[1]}/></label>
           <label className="upload">
             <Upload/>
-            <span><b>{t.upload[0]}</b><small>{t.upload[1]}</small></span>
-            <input type="file" accept="video/*" onChange={(e) => setVideo(Boolean(e.target.files?.length))}/>
+            <span><b>{t.upload[0]}</b><small>{fileName || t.upload[1]}</small></span>
+            <input name="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" onChange={(e) => setFileName(e.target.files?.[0]?.name || '')}/>
           </label>
           <button type="submit" disabled={lead === 'sending'}>{lead === 'sending' ? t.formStatus.sending : t.submit} <ArrowUpRight/></button>
-          {lead === 'ok' || lead === 'error' ? <small className={lead === 'error' ? 'note bad' : 'note'}>{t.formStatus[lead]}{lead === 'ok' && video ? ` ${t.formStatus.video}` : ''}</small> : null}
+          {lead !== 'idle' && lead !== 'sending' ? <small className={lead === 'ok' ? 'note' : 'note bad'}>{t.formStatus[lead]}</small> : null}
           <small className="privacy">{t.privacy}</small>
         </form>
       </section>
