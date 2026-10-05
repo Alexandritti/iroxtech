@@ -1,3 +1,5 @@
+export const LEGAL_DRIVE = 'https://drive.google.com/drive/folders/1RBNgFY__VQQqhmP6olSm9vgFO4eObZzI?usp=sharing';
+
 export function legalPath(lang, doc) {
   const slug = doc === 'privacy' ? 'privacy' : 'personal-data-consent';
   if (lang === 'en') return `/en/${slug}`;

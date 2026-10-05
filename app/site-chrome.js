@@ -1,7 +1,7 @@
 'use client';
 import {ArrowUpRight,Menu,X} from 'lucide-react';
 import {useState} from 'react';
-import {LANGS,legalPath} from './copy';
+import {LANGS,LEGAL_DRIVE} from './copy';
 
 const navHref = ['#solutions', '#process', '#economics', '#contact'];
 
@@ -46,7 +46,7 @@ export function SiteHeader({t, lang, setLang, hrefs, home = ''}) {
   );
 }
 
-export function SiteFooter({t, lang, logoHref = '#'}) {
+export function SiteFooter({t, logoHref = '#'}) {
   return (
     <footer id="contact">
       <Logo href={logoHref}/>
@@ -54,8 +54,8 @@ export function SiteFooter({t, lang, logoHref = '#'}) {
         <b>PALLET · WELD · MOVE · VISION</b>
         <p>{t.footer}</p>
         <p className="legalLinks">
-          <a href={legalPath(lang, 'privacy')}>{t.legalPrivacy}</a>
-          <a href={legalPath(lang, 'consent')}>{t.legalConsent}</a>
+          <a href={LEGAL_DRIVE} target="_blank" rel="noopener noreferrer">{t.legalPrivacy}</a>
+          <a href={LEGAL_DRIVE} target="_blank" rel="noopener noreferrer">{t.legalConsent}</a>
         </p>
       </div>
       <div className="footerRight"><a href="mailto:hello@iroxtech.ru">hello@iroxtech.ru</a><span>© 2026 IROX</span></div>

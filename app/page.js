@@ -1,7 +1,7 @@
 'use client';
 import {ArrowUpRight,Upload,ScanLine,Bot,Truck,Flame,ChevronRight,Check} from 'lucide-react';
 import {Fragment,useEffect,useRef,useState} from 'react';
-import {copy,legalPath,solutionMeta,stepMeta,metrics} from './copy';
+import {copy,LEGAL_DRIVE,solutionMeta,stepMeta,metrics} from './copy';
 import {SiteFooter,SiteHeader} from './site-chrome';
 
 const LEAD_URL = 'https://functions.yandexcloud.net/d4ephi82ae2rlm51rgco';
@@ -216,9 +216,9 @@ export default function Home() {
             <input id="pd-consent" ref={consentRef} type="checkbox" checked={consent} aria-invalid={consentErr || undefined} aria-describedby={consentErr ? 'consent-error' : undefined} onChange={(e) => { setConsent(e.target.checked); if (e.target.checked) setConsentErr(false); }}/>
             <span>
               <label htmlFor="pd-consent">{t.consentBox[0]}</label>
-              <a href={legalPath(lang, 'consent')} target="_blank" rel="noopener noreferrer">{t.consentBox[1]}</a>
+              <a href={LEGAL_DRIVE} target="_blank" rel="noopener noreferrer">{t.consentBox[1]}</a>
               <label htmlFor="pd-consent">{t.consentBox[2]}</label>
-              <a href={legalPath(lang, 'privacy')} target="_blank" rel="noopener noreferrer">{t.consentBox[3]}</a>
+              <a href={LEGAL_DRIVE} target="_blank" rel="noopener noreferrer">{t.consentBox[3]}</a>
               <label htmlFor="pd-consent">{t.consentBox[4]}</label>
             </span>
           </div>
