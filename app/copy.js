@@ -1,3 +1,10 @@
+export function legalPath(lang, doc) {
+  const slug = doc === 'privacy' ? 'privacy' : 'personal-data-consent';
+  if (lang === 'en') return `/en/${slug}`;
+  if (lang === 'zh') return `/zh/${slug}`;
+  return `/${slug}`;
+}
+
 export const LANGS = [
   ['ru', 'RU'],
   ['en', 'EN'],
@@ -68,7 +75,11 @@ export const copy = {
     about: ['ЧТО ХОТИТЕ РОБОТИЗИРОВАТЬ?', 'Коротко опишите операцию'],
     upload: ['ПРИКРЕПИТЬ ВИДЕО', 'MP4, MOV — до 100 МБ'],
     submit: 'ПОЛУЧИТЬ ПРЕДВАРИТЕЛЬНУЮ ОЦЕНКУ',
-    privacy: 'Отправляя данные, вы соглашаетесь с политикой обработки персональных данных.',
+    consentBox: ['Я даю ', 'согласие на обработку персональных данных', ' и ознакомлен с ', 'Политикой обработки персональных данных', '.'],
+    consentError: 'Необходимо дать согласие на обработку персональных данных.',
+    legalPrivacy: 'Политика обработки персональных данных',
+    legalConsent: 'Согласие на обработку персональных данных',
+    back: 'Вернуться на сайт',
     footer: 'Роботизация производственных операций под ключ.',
   },
   en: {
@@ -123,7 +134,11 @@ export const copy = {
     about: ['WHAT DO YOU WANT TO ROBOTIZE?', 'Briefly describe the operation'],
     upload: ['ATTACH A VIDEO', 'MP4, MOV — up to 100 MB'],
     submit: 'GET A PRELIMINARY ASSESSMENT',
-    privacy: 'By sending this data you agree to the personal data policy.',
+    consentBox: ['I consent to the processing of my personal data in accordance with the ', 'Personal Data Processing Consent', ' and acknowledge that I have read the ', 'Personal Data Processing Policy', '.'],
+    consentError: 'You must consent to the processing of your personal data.',
+    legalPrivacy: 'Personal Data Processing Policy',
+    legalConsent: 'Personal Data Processing Consent',
+    back: 'Back to website',
     footer: 'Turnkey robotization of production operations.',
   },
   zh: {
@@ -178,7 +193,11 @@ export const copy = {
     about: ['想把什么机器人化？', '简要描述这项作业'],
     upload: ['附上视频', 'MP4、MOV — 不超过 100 MB'],
     submit: '获取初步评估',
-    privacy: '提交数据即表示你同意个人数据处理政策。',
+    consentBox: ['我同意按照', '《个人数据处理同意书》', '处理我的个人数据，并确认我已阅读', '《个人数据处理政策》', '。'],
+    consentError: '您必须同意处理您的个人数据。',
+    legalPrivacy: '个人数据处理政策',
+    legalConsent: '个人数据处理同意书',
+    back: '返回网站',
     footer: '生产作业交钥匙机器人化。',
   },
 };

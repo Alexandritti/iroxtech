@@ -1,7 +1,8 @@
 'use client';
-import {ArrowUpRight,Upload,Menu,X,ScanLine,Bot,Truck,Flame,ChevronRight,Check} from 'lucide-react';
-import {Fragment,useEffect,useState} from 'react';
-import {LANGS,copy,solutionMeta,stepMeta,metrics} from './copy';
+import {ArrowUpRight,Upload,ScanLine,Bot,Truck,Flame,ChevronRight,Check} from 'lucide-react';
+import {Fragment,useEffect,useRef,useState} from 'react';
+import {copy,legalPath,solutionMeta,stepMeta,metrics} from './copy';
+import {SiteFooter,SiteHeader} from './site-chrome';
 
 const LEAD_URL = 'https://functions.yandexcloud.net/d4ephi82ae2rlm51rgco';
 
@@ -35,28 +36,7 @@ function Ring({value}) {
   );
 }
 const icons = [Bot, Flame, Truck, ScanLine];
-const navHref = ['#solutions', '#process', '#economics', '#contact'];
-
-function Logo() {
-  return (
-    <a className="logo" href="#" aria-label="IROX">
-      <svg width="28" height="16" viewBox="0 0 28 16" aria-hidden="true">
-        <path d="M1 1.5h7M1 1.5v13M1 14.5h7M27 1.5h-7M27 1.5v13M27 14.5h-7M11.5 8h5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="square"/>
-      </svg>
-      <b>IROX</b>
-    </a>
-  );
-}
-
-function LangSwitch({lang, setLang}) {
-  return (
-    <div className="langs" role="group" aria-label="Language">
-      {LANGS.map(([id, label]) => (
-        <button key={id} type="button" className={lang === id ? 'on' : ''} aria-pressed={lang === id} onClick={() => setLang(id)}>{label}</button>
-      ))}
-    </div>
-  );
-}
+const CONSENT_VERSION = '2026-10-03';
 
 function Title({lines}) {
   return (
@@ -70,10 +50,12 @@ function Title({lines}) {
 
 export default function Home() {
   const [lang, setLang] = useState('ru');
-  const [open, setOpen] = useState(false);
   const [lead, setLead] = useState('idle');
   const [fileName, setFileName] = useState('');
   const [pct, setPct] = useState(null);
+  const [consent, setConsent] = useState(false);
+  const [consentErr, setConsentErr] = useState(false);
+  const consentRef = useRef(null);
   const t = copy[lang];
 
   useEffect(() => {
@@ -88,17 +70,7 @@ export default function Home() {
 
   return (
     <main>
-      <header>
-        <Logo/>
-        <nav className={open ? 'open' : ''}>
-          {t.nav.map((label, i) => <a key={navHref[i]} href={navHref[i]} onClick={() => setOpen(false)}>{label}</a>)}
-        </nav>
-        <div className="headerTools">
-          <LangSwitch lang={lang} setLang={setLang}/>
-          <a className="headerCta" href="#lead">{t.cta} <ArrowUpRight size={16}/></a>
-        </div>
-        <button className="menu" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X/> : <Menu/>}</button>
-      </header>
+      <SiteHeader t={t} lang={lang} setLang={setLang}/>
 
       <section className="hero">
         <div className="gridbg"/>
@@ -189,8 +161,25 @@ export default function Home() {
         <form method="post" action="#lead" onSubmit={async (e) => {
             e.preventDefault();
             if (lead === 'sending') return;
+            if (consent !== true) {
+              setConsentErr(true);
+              consentRef.current?.focus();
+              return;
+            }
             const data = new FormData(e.currentTarget);
             const body = Object.fromEntries(['name', 'company', 'contact', 'email', 'about'].map((key) => [key, data.get(key) || '']));
+            const consentLanguage = lang === 'zh' ? 'zh' : lang;
+            const consentFields = {
+              personal_data_consent: true,
+              consent_version: CONSENT_VERSION,
+              consent_language: consentLanguage,
+              consent_timestamp: new Date().toISOString(),
+              consent_document: 'personal-data-consent',
+              privacy_document: 'privacy',
+            };
+            const mark = `personal_data_consent=true; consent_version=${consentFields.consent_version}; consent_language=${consentFields.consent_language}; consent_timestamp=${consentFields.consent_timestamp}; consent_document=${consentFields.consent_document}; privacy_document=${consentFields.privacy_document}`;
+            body.about = `${mark}\n${body.about}`.trim();
+            Object.assign(body, consentFields);
             const file = data.get('video');
             setPct(null);
             setLead('sending');
@@ -223,9 +212,19 @@ export default function Home() {
             <span><b>{t.upload[0]}</b><small>{fileName || t.upload[1]}</small></span>
             <input name="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" onChange={(e) => setFileName(e.target.files?.[0]?.name || '')}/>
           </label>
+          <div className="consent">
+            <input id="pd-consent" ref={consentRef} type="checkbox" checked={consent} aria-invalid={consentErr || undefined} aria-describedby={consentErr ? 'consent-error' : undefined} onChange={(e) => { setConsent(e.target.checked); if (e.target.checked) setConsentErr(false); }}/>
+            <span>
+              <label htmlFor="pd-consent">{t.consentBox[0]}</label>
+              <a href={legalPath(lang, 'consent')} target="_blank" rel="noopener noreferrer">{t.consentBox[1]}</a>
+              <label htmlFor="pd-consent">{t.consentBox[2]}</label>
+              <a href={legalPath(lang, 'privacy')} target="_blank" rel="noopener noreferrer">{t.consentBox[3]}</a>
+              <label htmlFor="pd-consent">{t.consentBox[4]}</label>
+            </span>
+          </div>
+          {consentErr ? <small className="note bad" id="consent-error">{t.consentError}</small> : null}
           <button type="submit" disabled={lead === 'sending'}>{lead === 'sending' ? t.formStatus.sending : t.submit} <ArrowUpRight/></button>
           {lead !== 'idle' && lead !== 'sending' && lead !== 'ok' ? <small className="note bad">{t.formStatus[lead]}</small> : null}
-          <small className="privacy">{t.privacy}</small>
           {lead === 'ok' ? (
             <div className="sent" role="status">
               <span className="tick" aria-hidden="true"><Check strokeWidth={2.6}/></span>
@@ -236,11 +235,7 @@ export default function Home() {
         </form>
       </section>
 
-      <footer id="contact">
-        <Logo/>
-        <div><b>PALLET · WELD · MOVE · VISION</b><p>{t.footer}</p></div>
-        <div className="footerRight"><a href="mailto:hello@iroxtech.ru">hello@iroxtech.ru</a><span>© 2026 IROX</span></div>
-      </footer>
+      <SiteFooter t={t} lang={lang}/>
     </main>
   );
 }

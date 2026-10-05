@@ -16,6 +16,17 @@ const ALLOW = new Set([
 const HOST = 'storage.yandexcloud.net';
 const REGION = 'ru-central1';
 const MAX_VIDEO = 100 * 1024 * 1024;
+const CONSENT_VERSION = '2026-10-03';
+
+function consentLineOf(payload) {
+  if (payload.personal_data_consent !== true) return '';
+  if (payload.consent_version !== CONSENT_VERSION) return '';
+  if (!['ru', 'en', 'zh'].includes(payload.consent_language)) return '';
+  if (payload.consent_document !== 'personal-data-consent') return '';
+  if (payload.privacy_document !== 'privacy') return '';
+  if (!Number.isFinite(Date.parse(payload.consent_timestamp))) return '';
+  return `personal_data_consent=true; consent_version=${payload.consent_version}; consent_language=${payload.consent_language}; consent_timestamp=${payload.consent_timestamp}; consent_document=${payload.consent_document}; privacy_document=${payload.privacy_document}`;
+}
 
 function headersFor(event) {
   const h = event.headers || {};
@@ -109,10 +120,17 @@ module.exports.handler = async function (event) {
     return json(event, 200, { uploadUrl, videoUrl });
   }
 
+  const consentLine = consentLineOf(payload);
+  if (!consentLine) return json(event, 400, { error: 'consent' });
+
   const values = {};
   for (const [key, id] of Object.entries(FIELDS)) {
     const value = (payload[key] || '').toString().trim();
     if (value) values[id] = value.slice(0, 3500);
+  }
+  if (!String(values[FIELDS.about] || '').includes('consent_version=')) {
+    const room = 3500 - consentLine.length - 1;
+    values[FIELDS.about] = `${consentLine}\n${String(values[FIELDS.about] || '').slice(0, Math.max(0, room))}`.trim();
   }
   if (payload.videoUrl) {
     let url;
