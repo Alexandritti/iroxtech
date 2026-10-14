@@ -186,14 +186,17 @@ export default function Home() {
             try {
               if (file && file.size) {
                 if (file.size > 100 * 1024 * 1024) { setLead('tooBig'); return; }
-                const type = file.type || 'application/octet-stream';
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                const type = ext === 'mp4' ? 'video/mp4' : ext === 'mov' ? 'video/quicktime' : '';
+                if (!type) { setLead('videoFail'); return; }
                 setPct(0);
                 const signRes = await fetch(LEAD_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({op: 'sign', name: file.name, type, size: file.size})});
                 if (!signRes.ok) { setPct(null); setLead('videoFail'); return; }
                 const signed = await signRes.json();
                 const status = await putWithProgress(signed.uploadUrl, file, type, setPct);
                 if (status < 200 || status >= 300) { setPct(null); setLead('videoFail'); return; }
-                body.videoUrl = signed.videoUrl;
+                if (signed.key) body.videoKey = signed.key;
+                else if (signed.videoUrl) body.videoUrl = signed.videoUrl;
               }
               const res = await fetch(LEAD_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
               setPct(null);

@@ -10,13 +10,13 @@ const FIELDS = {
 };
 const ALLOW = new Set([
   'https://iroxtech.ru',
-  'http://iroxtech.ru',
-  'http://localhost:3000',
 ]);
 const HOST = 'storage.yandexcloud.net';
 const REGION = 'ru-central1';
 const MAX_VIDEO = 100 * 1024 * 1024;
 const CONSENT_VERSION = '2026-10-03';
+const VIDEO_TYPES = { mp4: 'video/mp4', mov: 'video/quicktime' };
+const KEY_RE = /^leads\/\d{4}-\d{2}-\d{2}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(mp4|mov)$/;
 
 function consentLineOf(payload) {
   if (payload.personal_data_consent !== true) return '';
@@ -24,6 +24,7 @@ function consentLineOf(payload) {
   if (!['ru', 'en', 'zh'].includes(payload.consent_language)) return '';
   if (payload.consent_document !== 'personal-data-consent') return '';
   if (payload.privacy_document !== 'privacy') return '';
+  if (typeof payload.consent_timestamp !== 'string' || payload.consent_timestamp.length > 40) return '';
   if (!Number.isFinite(Date.parse(payload.consent_timestamp))) return '';
   return `personal_data_consent=true; consent_version=${payload.consent_version}; consent_language=${payload.consent_language}; consent_timestamp=${payload.consent_timestamp}; consent_document=${payload.consent_document}; privacy_document=${payload.privacy_document}`;
 }
@@ -53,11 +54,15 @@ function enc(value) {
   return encodeURIComponent(value).replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
 }
 
-function presign({ method, bucket, key, expires, contentType, accessKey, secret }) {
+function presign({ method, bucket, key, expires, contentType, contentLength, accessKey, secret }) {
   const amz = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
   const date = amz.slice(0, 8);
   const scope = `${date}/${REGION}/s3/aws4_request`;
-  const signedHeaders = contentType ? 'content-type;host' : 'host';
+  const headerNames = ['host'];
+  if (contentType) headerNames.push('content-type');
+  if (contentLength) headerNames.push('content-length');
+  headerNames.sort();
+  const signedHeaders = headerNames.join(';');
   const canonicalUri = `/${[bucket, ...key.split('/')].map(enc).join('/')}`;
   const pairs = [
     ['X-Amz-Algorithm', 'AWS4-HMAC-SHA256'],
@@ -67,9 +72,11 @@ function presign({ method, bucket, key, expires, contentType, accessKey, secret 
     ['X-Amz-SignedHeaders', signedHeaders],
   ].sort((a, b) => (a[0] < b[0] ? -1 : 1));
   const canonicalQuery = pairs.map(([k, v]) => `${enc(k)}=${enc(v)}`).join('&');
-  const canonicalHeaders = contentType
-    ? `content-type:${contentType}\nhost:${HOST}\n`
-    : `host:${HOST}\n`;
+  const canonicalHeaders = headerNames.map((name) => {
+    if (name === 'host') return `host:${HOST}\n`;
+    if (name === 'content-type') return `content-type:${contentType}\n`;
+    return `content-length:${contentLength}\n`;
+  }).join('');
   const canonical = [method, canonicalUri, canonicalQuery, canonicalHeaders, signedHeaders, 'UNSIGNED-PAYLOAD'].join('\n');
   const stringToSign = ['AWS4-HMAC-SHA256', amz, scope, crypto.createHash('sha256').update(canonical).digest('hex')].join('\n');
   const signingKey = ['AWS4' + secret, date, REGION, 's3', 'aws4_request'].reduce(
@@ -109,15 +116,17 @@ module.exports.handler = async function (event) {
 
   if (payload.op === 'sign') {
     if (!bucket || !accessKey || !secret) return json(event, 501, { error: 'storage' });
-    const size = Number(payload.size) || 0;
+    const size = Number(payload.size);
     const ext = extOf(payload.name);
-    const type = (payload.type || 'application/octet-stream').toString().slice(0, 80);
-    if (!ext || size < 1 || size > MAX_VIDEO) return json(event, 400, { error: 'file' });
+    if (!ext || !Number.isInteger(size) || size < 1 || size > MAX_VIDEO) return json(event, 400, { error: 'file' });
+    if (payload.type !== VIDEO_TYPES[ext]) return json(event, 400, { error: 'file' });
     const day = new Date().toISOString().slice(0, 10);
     const key = `leads/${day}/${crypto.randomUUID()}.${ext}`;
-    const uploadUrl = presign({ method: 'PUT', bucket, key, expires: 3600, contentType: type, accessKey, secret });
-    const videoUrl = presign({ method: 'GET', bucket, key, expires: 604800, accessKey, secret });
-    return json(event, 200, { uploadUrl, videoUrl });
+    const uploadUrl = presign({
+      method: 'PUT', bucket, key, expires: 3600,
+      contentType: VIDEO_TYPES[ext], contentLength: String(size), accessKey, secret,
+    });
+    return json(event, 200, { uploadUrl, key });
   }
 
   const consentLine = consentLineOf(payload);
@@ -128,15 +137,16 @@ module.exports.handler = async function (event) {
     const value = (payload[key] || '').toString().trim();
     if (value) values[id] = value.slice(0, 3500);
   }
-  if (!String(values[FIELDS.about] || '').includes('consent_version=')) {
-    const room = 3500 - consentLine.length - 1;
-    values[FIELDS.about] = `${consentLine}\n${String(values[FIELDS.about] || '').slice(0, Math.max(0, room))}`.trim();
-  }
-  if (payload.videoUrl) {
-    let url;
-    try { url = new URL(payload.videoUrl); } catch { url = null; }
-    const own = url && url.protocol === 'https:' && url.hostname === HOST && url.pathname.startsWith(`/${bucket}/leads/`);
-    if (own) values[FIELDS.about] = `${values[FIELDS.about] || ''}\nВидео: ${payload.videoUrl}`.trim().slice(0, 4000);
+  const aboutBody = String(values[FIELDS.about] || '')
+    .split('\n')
+    .filter((line) => !line.includes('consent_version='))
+    .join('\n')
+    .trim();
+  const room = 3500 - consentLine.length - 1;
+  values[FIELDS.about] = `${consentLine}\n${aboutBody.slice(0, Math.max(0, room))}`.trim();
+  if (bucket && accessKey && secret && typeof payload.videoKey === 'string' && KEY_RE.test(payload.videoKey)) {
+    const videoUrl = presign({ method: 'GET', bucket, key: payload.videoKey, expires: 604800, accessKey, secret });
+    values[FIELDS.about] = `${values[FIELDS.about] || ''}\nВидео: ${videoUrl}`.trim().slice(0, 4000);
   }
   if (!values[FIELDS.name] && !values[FIELDS.contact] && !values[FIELDS.email]) {
     return json(event, 400, { error: 'empty' });
