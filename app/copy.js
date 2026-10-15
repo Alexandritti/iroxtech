@@ -1,3 +1,4 @@
+// TODO: move these legal PDFs from Drive onto iroxtech.ru when they can live on the domain.
 export const LEGAL_DRIVE = 'https://drive.google.com/drive/folders/1RBNgFY__VQQqhmP6olSm9vgFO4eObZzI?usp=sharing';
 
 export const LANGS = [
@@ -6,22 +7,56 @@ export const LANGS = [
   ['zh', '中文'],
 ];
 
-const tags = {
-  pallet: ['24/7', '↓ LABOR', '↑ OUTPUT'],
+const tagsEn = {
+  pallet: ['24/7', '↑ OUTPUT'],
   weld: ['QUALITY', 'REPEATABLE', 'OUTPUT'],
   move: ['AMR / AGV', '24/7', 'SCALABLE'],
   vision: ['QC', 'DETECTION', 'PRECISION'],
 };
 
-const techWords = ['INDUSTRIAL ROBOTS', 'COBOTS', 'AMR / AGV', 'MACHINE VISION', 'PLC / AUTOMATION', 'GRIPPERS', 'SAFETY SYSTEMS', 'INDUSTRIAL SOFTWARE'];
+const tagsRu = {
+  pallet: ['24/7', '↑ ПРОИЗВОДИТЕЛЬНОСТЬ'],
+  weld: ['КАЧЕСТВО', 'ПОВТОРЯЕМОСТЬ', 'ПРОИЗВОДИТЕЛЬНОСТЬ'],
+  move: ['AMR / AGV', '24/7', 'МАСШТАБ'],
+  vision: ['КОНТРОЛЬ КАЧЕСТВА', 'ОБНАРУЖЕНИЕ', 'ТОЧНОСТЬ'],
+};
 
-const metrics = ['CAPEX', 'OPEX', 'LABOR', 'OUTPUT', 'PAYBACK'];
+const tagsZh = {
+  pallet: ['24/7', '↑ 产能'],
+  weld: ['质量', '可重复', '产能'],
+  move: ['AMR / AGV', '24/7', '可扩展'],
+  vision: ['质检', '检测', '精度'],
+};
+
+const techWordsEn = ['INDUSTRIAL ROBOTS', 'COBOTS', 'AMR / AGV', 'MACHINE VISION', 'PLC / AUTOMATION', 'GRIPPERS', 'SAFETY SYSTEMS', 'INDUSTRIAL SOFTWARE'];
+const techWordsRu = [
+  'ПРОМЫШЛЕННЫЕ РОБОТЫ',
+  ['КОБОТЫ', 'коллаборативный робот'],
+  ['AMR / AGV', 'автономный мобильный робот / автоматическая тележка'],
+  'МАШИННОЕ ЗРЕНИЕ',
+  ['ПЛК / АВТОМАТИКА', 'программируемый логический контроллер'],
+  ['ЗАХВАТЫ', 'чем робот удерживает изделие'],
+  'СИСТЕМЫ БЕЗОПАСНОСТИ',
+  ['ПРОМЫШЛЕННОЕ ПО', 'программное обеспечение'],
+];
+const techWordsZh = ['工业机器人', '协作机器人', 'AMR / AGV', '机器视觉', 'PLC / 自动化', '夹具', '安全系统', '工业软件'];
+
+// Not rendered. Inputs for a later calculator. No sample figures.
+export const econCalculator = {
+  inputs: ['payroll', 'headcount', 'shifts', 'throughputNow', 'capex', 'opex'],
+  outputs: ['annualSaving', 'throughputGain', 'payback'],
+};
 
 export const copy = {
   ru: {
     nav: ['Решения', 'Процесс', 'Экономика', 'Контакты'],
     cta: 'Оценить операцию',
-    kicker: 'INDUSTRIAL ROBOTICS INTEGRATION',
+    menu: 'Меню',
+    language: 'Язык',
+    kicker: 'ИНТЕГРАЦИЯ ПРОМЫШЛЕННОЙ РОБОТИЗАЦИИ',
+    sections: ['01 / ПОДХОД', '02 / РЕШЕНИЯ', '03 / ПРОЦЕСС', '04 / ЭКОНОМИКА', '05 / ТЕХНОЛОГИИ', '06 / НАЧНИТЕ С ВИДЕО'],
+    stepMeta: ['ВИДЕО', 'ОЦЕНКА', 'АУДИТ', 'ПРОЕКТ', 'ЭКОНОМИКА', 'ЗАПУСК'],
+    metricKeys: ['CAPEX', 'OPEX', 'ТРУДОЗАТРАТЫ', 'ПРОИЗВОДИТЕЛЬНОСТЬ', 'ОКУПАЕМОСТЬ'],
     h1: ['РОБОТИЗАЦИЯ', 'ПРОИЗВОДСТВЕННЫХ', ['ОПЕРАЦИЙ', ' ПОД КЛЮЧ']],
     heroLead: 'От оценки операции и расчёта экономики до поставки оборудования, интеграции, запуска и сервиса.',
     heroBtn: ['Пришлите видео операции', 'Получите предварительную оценку роботизации'],
@@ -30,10 +65,10 @@ export const copy = {
     flow: ['ПРОИЗВОДСТВЕННАЯ ЗАДАЧА', 'РАБОТАЮЩАЯ СИСТЕМА'],
     solutionsTitle: ['ЧТО МЫ', 'РОБОТИЗИРУЕМ'],
     solutions: [
-      ['Роботизированное паллетирование', 'Автоматическая укладка мешков, коробок, упаковок и готовой продукции на паллеты.', tags.pallet],
-      ['Роботизированная сварка', 'Роботизированные сварочные ячейки для серийного производства металлических изделий и конструкций.', tags.weld],
-      ['Автономная внутренняя логистика', 'AMR / AGV для перемещения материалов, компонентов и готовой продукции между участками.', tags.move],
-      ['Машинное зрение', 'Контроль качества, распознавание объектов, позиционирование и управление роботизированными операциями.', tags.vision],
+      ['Роботизированное паллетирование', 'Автоматическая укладка мешков, коробок, упаковок и готовой продукции на паллеты.', tagsRu.pallet],
+      ['Роботизированная сварка', 'Роботизированные сварочные ячейки для серийного производства металлических изделий и конструкций.', tagsRu.weld],
+      ['Автономная внутренняя логистика', 'AMR / AGV для перемещения материалов, компонентов и готовой продукции между участками.', tagsRu.move],
+      ['Машинное зрение', 'Контроль качества, распознавание объектов, позиционирование и управление роботизированными операциями.', tagsRu.vision],
     ],
     processTitle: ['ОТ ВИДЕО', 'ДО ЗАПУСКА'],
     steps: [
@@ -47,8 +82,8 @@ export const copy = {
     econ: { before: ['СНАЧАЛА'], accent: 'СЧИТАЕМ.', after: ['ПОТОМ', 'ВНЕДРЯЕМ.'] },
     econText: 'Роботизация должна иметь понятный экономический эффект. Для каждого проекта оцениваем ключевые параметры.',
     metrics: ['Инвестиции в оборудование и интеграцию', 'Эксплуатационные расходы', 'Изменение трудозатрат', 'Производительность', 'Расчётный срок окупаемости'],
-    tech: { before: 'THE ROBOT IS', accent: 'ONLY ONE PART.' },
-    techWords,
+    tech: { before: 'РОБОТ —', accent: 'ТОЛЬКО ЧАСТЬ РЕШЕНИЯ.' },
+    techWords: techWordsRu,
     leadTitle: ['ПРИШЛИТЕ', 'ВИДЕО ОПЕРАЦИИ'],
     leadSub: 'Получите предварительную оценку роботизации',
     leadText: 'Не нужно составлять техническое задание. Снимите на телефон операцию, которую хотите автоматизировать.',
@@ -57,7 +92,7 @@ export const copy = {
       ['ИМЯ', 'Александр', 'text', 'name'],
       ['КОМПАНИЯ', 'Название компании', 'text', 'company'],
       ['ТЕЛЕФОН / TELEGRAM / WECHAT', '+7 999 000-00-00', 'text', 'contact'],
-      ['E-MAIL', 'name@company.ru', 'email', 'email'],
+      ['ПОЧТА', 'name@company.ru', 'email', 'email'],
     ],
     formStatus: {
       sending: 'ОТПРАВКА',
@@ -80,7 +115,12 @@ export const copy = {
   en: {
     nav: ['Solutions', 'Process', 'Economics', 'Contact'],
     cta: 'Assess an operation',
+    menu: 'Menu',
+    language: 'Language',
     kicker: 'INDUSTRIAL ROBOTICS INTEGRATION',
+    sections: ['01 / APPROACH', '02 / SOLUTIONS', '03 / FROM OPERATION TO AUTOMATION', '04 / BUSINESS CASE', '05 / TECHNOLOGY', '06 / START WITH A VIDEO'],
+    stepMeta: ['VIDEO', 'ANALYSIS', 'AUDIT', 'ENGINEERING', 'ECONOMICS', 'INTEGRATION'],
+    metricKeys: ['CAPEX', 'OPEX', 'LABOR', 'OUTPUT', 'PAYBACK'],
     h1: ['ROBOTIZING', 'PRODUCTION', ['OPERATIONS', ' TURNKEY']],
     heroLead: 'From assessing the operation and the business case to equipment supply, integration, launch and service.',
     heroBtn: ['Send a video of the operation', 'Get a preliminary robotization assessment'],
@@ -89,10 +129,10 @@ export const copy = {
     flow: ['PRODUCTION TASK', 'WORKING SYSTEM'],
     solutionsTitle: ['WHAT WE', 'ROBOTIZE'],
     solutions: [
-      ['Robotic palletizing', 'Automatic stacking of bags, boxes, packs and finished goods onto pallets.', tags.pallet],
-      ['Robotic welding', 'Robotic welding cells for serial production of metal parts and structures.', tags.weld],
-      ['Autonomous in-plant logistics', 'AMR / AGV move materials, components and finished goods between areas.', tags.move],
-      ['Machine vision', 'Quality control, object detection, positioning and control of robotic operations.', tags.vision],
+      ['Robotic palletizing', 'Automatic stacking of bags, boxes, packs and finished goods onto pallets.', tagsEn.pallet],
+      ['Robotic welding', 'Robotic welding cells for serial production of metal parts and structures.', tagsEn.weld],
+      ['Autonomous in-plant logistics', 'AMR / AGV move materials, components and finished goods between areas.', tagsEn.move],
+      ['Machine vision', 'Quality control, object detection, positioning and control of robotic operations.', tagsEn.vision],
     ],
     processTitle: ['FROM A VIDEO', 'TO LAUNCH'],
     steps: [
@@ -107,7 +147,7 @@ export const copy = {
     econText: 'Robotization has to show a clear economic effect. For every project we estimate the key parameters.',
     metrics: ['Investment in equipment and integration', 'Operating costs', 'Change in labor', 'Throughput', 'Estimated payback'],
     tech: { before: 'THE ROBOT IS', accent: 'ONLY ONE PART.' },
-    techWords,
+    techWords: techWordsEn,
     leadTitle: ['SEND A VIDEO', 'OF THE OPERATION'],
     leadSub: 'Get a preliminary robotization assessment',
     leadText: 'No specification required. Film the operation you want to automate on your phone.',
@@ -139,7 +179,12 @@ export const copy = {
   zh: {
     nav: ['方案', '流程', '经济性', '联系'],
     cta: '评估作业',
-    kicker: 'INDUSTRIAL ROBOTICS INTEGRATION',
+    menu: '菜单',
+    language: '语言',
+    kicker: '工业机器人集成',
+    sections: ['01 / 方法', '02 / 方案', '03 / 流程', '04 / 经济性', '05 / 技术', '06 / 从视频开始'],
+    stepMeta: ['视频', '评估', '审计', '工程', '经济', '投产'],
+    metricKeys: ['CAPEX', 'OPEX', '人工', '产能', '回收期'],
     h1: ['生产作业', '机器人化', ['交钥匙', '交付']],
     heroLead: '从作业评估和经济效益测算，到设备供应、集成、投产与服务。',
     heroBtn: ['发送作业视频', '获取机器人化初步评估'],
@@ -148,10 +193,10 @@ export const copy = {
     flow: ['生产任务', '可运行的系统'],
     solutionsTitle: ['我们实现', '哪些机器人化'],
     solutions: [
-      ['机器人码垛', '自动将袋装、箱装、包装及成品码放到托盘上。', tags.pallet],
-      ['机器人焊接', '面向金属制品与结构件批量生产的机器人焊接单元。', tags.weld],
-      ['厂内自主物流', '用 AMR / AGV 在工位之间运送物料、零部件和成品。', tags.move],
-      ['机器视觉', '质量检测、目标识别、定位，并控制机器人作业。', tags.vision],
+      ['机器人码垛', '自动将袋装、箱装、包装及成品码放到托盘上。', tagsZh.pallet],
+      ['机器人焊接', '面向金属制品与结构件批量生产的机器人焊接单元。', tagsZh.weld],
+      ['厂内自主物流', '用 AMR / AGV 在工位之间运送物料、零部件和成品。', tagsZh.move],
+      ['机器视觉', '质量检测、目标识别、定位，并控制机器人作业。', tagsZh.vision],
     ],
     processTitle: ['从视频', '到投产'],
     steps: [
@@ -165,8 +210,8 @@ export const copy = {
     econ: { before: ['先算清楚。'], accent: '再去实施。', after: [] },
     econText: '机器人化必须有清楚的经济效益。每个项目我们都评估这些关键参数。',
     metrics: ['设备与集成投资', '运营成本', '人工变化', '产能', '预计回收期'],
-    tech: { before: '机器人', accent: '只是一部分。' },
-    techWords,
+    tech: { before: '机器人只是', accent: '方案的一部分。' },
+    techWords: techWordsZh,
     leadTitle: ['发来', '作业视频'],
     leadSub: '获取机器人化初步评估',
     leadText: '不必编写技术任务书。用手机拍下你想自动化的作业。',
@@ -203,7 +248,3 @@ export const solutionMeta = [
   ['03', 'MOVE'],
   ['04', 'VISION'],
 ];
-
-export const stepMeta = ['VIDEO', 'ANALYSIS', 'AUDIT', 'ENGINEERING', 'ECONOMICS', 'INTEGRATION'];
-
-export { metrics };

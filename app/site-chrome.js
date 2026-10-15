@@ -16,9 +16,9 @@ export function Logo({href = '#'}) {
   );
 }
 
-export function LangSwitch({lang, setLang, hrefs}) {
+export function LangSwitch({lang, setLang, hrefs, label = 'Language'}) {
   return (
-    <div className="langs" role="group" aria-label="Language">
+    <div className="langs" role="group" aria-label={label}>
       {LANGS.map(([id, label]) => hrefs ? (
         <a key={id} href={hrefs[id]} className={lang === id ? 'on' : ''} aria-current={lang === id ? 'page' : undefined}>{label}</a>
       ) : (
@@ -38,10 +38,10 @@ export function SiteHeader({t, lang, setLang, hrefs, home = ''}) {
         {t.nav.map((label, i) => <a key={navHref[i]} href={hash(navHref[i])} onClick={() => setOpen(false)}>{label}</a>)}
       </nav>
       <div className="headerTools">
-        <LangSwitch lang={lang} setLang={setLang} hrefs={hrefs}/>
+        <LangSwitch lang={lang} setLang={setLang} hrefs={hrefs} label={t.language}/>
         <a className="headerCta" href={hash('#lead')}>{t.cta} <ArrowUpRight size={16}/></a>
       </div>
-      <button className="menu" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X/> : <Menu/>}</button>
+      <button className="menu" onClick={() => setOpen(!open)} aria-label={t.menu} aria-expanded={open}>{open ? <X/> : <Menu/>}</button>
     </header>
   );
 }
