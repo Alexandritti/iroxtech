@@ -14,6 +14,7 @@ const ALLOW = new Set([
 const HOST = 'storage.yandexcloud.net';
 const REGION = 'ru-central1';
 const MAX_VIDEO = 100 * 1024 * 1024;
+const ABOUT_MAX = 512;
 const CONSENT_VERSION = '2026-10-03';
 const VIDEO_TYPES = { mp4: 'video/mp4', mov: 'video/quicktime' };
 const KEY_RE = /^leads\/\d{4}-\d{2}-\d{2}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(mp4|mov)$/;
@@ -91,6 +92,17 @@ function extOf(name) {
   return ext === 'mp4' || ext === 'mov' ? ext : '';
 }
 
+function packAbout(stamp, aboutBody, videoUrl) {
+  const videoLine = videoUrl ? `Видео: ${videoUrl}` : '';
+  const tail = videoLine ? `\n${videoLine}` : '';
+  const headRoom = ABOUT_MAX - tail.length;
+  if (headRoom <= 0) return videoLine.slice(0, ABOUT_MAX);
+  let head = stamp;
+  if (aboutBody) head = `${stamp}\n${aboutBody}`;
+  if (head.length > headRoom) head = head.slice(0, headRoom).replace(/\s+$/u, '');
+  return `${head}${tail}`.trim();
+}
+
 function readPayload(event) {
   const raw = event.isBase64Encoded
     ? Buffer.from(event.body || '', 'base64').toString('utf8')
@@ -142,12 +154,15 @@ module.exports.handler = async function (event) {
     .filter((line) => !line.includes('consent_version='))
     .join('\n')
     .trim();
-  const room = 3500 - consentLine.length - 1;
-  values[FIELDS.about] = `${consentLine}\n${aboutBody.slice(0, Math.max(0, room))}`.trim();
+  let videoUrl = '';
   if (bucket && accessKey && secret && typeof payload.videoKey === 'string' && KEY_RE.test(payload.videoKey)) {
-    const videoUrl = presign({ method: 'GET', bucket, key: payload.videoKey, expires: 604800, accessKey, secret });
-    values[FIELDS.about] = `${values[FIELDS.about] || ''}\nВидео: ${videoUrl}`.trim().slice(0, 4000);
+    videoUrl = presign({ method: 'GET', bucket, key: payload.videoKey, expires: 604800, accessKey, secret });
   }
+  let stamp = consentLine;
+  if (videoUrl && stamp.length + 1 + `Видео: ${videoUrl}`.length > ABOUT_MAX) {
+    stamp = `consent_version=${payload.consent_version}; consent_language=${payload.consent_language}; consent_timestamp=${payload.consent_timestamp}`;
+  }
+  values[FIELDS.about] = packAbout(stamp, aboutBody, videoUrl);
   if (!values[FIELDS.name] && !values[FIELDS.contact] && !values[FIELDS.email]) {
     return json(event, 400, { error: 'empty' });
   }
