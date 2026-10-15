@@ -2,6 +2,7 @@
 import {ArrowUpRight,Upload,ScanLine,Bot,Truck,Flame,ChevronRight,Check} from 'lucide-react';
 import {Fragment,useEffect,useRef,useState} from 'react';
 import {copy,LEGAL_DRIVE,solutionMeta} from './copy';
+import {OperationVideo} from './operation-video';
 import {SiteFooter,SiteHeader} from './site-chrome';
 
 const LEAD_URL = 'https://functions.yandexcloud.net/d4ephi82ae2rlm51rgco';
@@ -32,6 +33,12 @@ function LoadMark({value}) {
   );
 }
 const icons = [Bot, Flame, Truck, ScanLine];
+const operationClips = [
+  ['/videos/pallet.mp4', '/videos/pallet.jpg'],
+  ['/videos/weld.mp4', '/videos/weld.jpg'],
+  ['/videos/move.mp4', '/videos/move.jpg'],
+  ['/videos/vision.mp4', '/videos/vision.jpg'],
+];
 const CONSENT_VERSION = '2026-10-03';
 
 function Title({lines}) {
@@ -98,17 +105,18 @@ export default function Home() {
           <div className="sectionNo">{t.sections[1]}</div>
           <h2>{t.solutionsTitle[0]}<br/>{t.solutionsTitle[1]}</h2>
         </div>
-        {/* Later: one OperationVideo per card (PALLET, WELD, MOVE, VISION), sequence before → robotization → after. Do not mount until src exists. */}
         <div className="solutionGrid">
           {t.solutions.map(([title, text, tags], i) => {
             const Icon = icons[i];
             const [code, name] = solutionMeta[i];
+            const [src, poster] = operationClips[i];
             return (
               <article className="solution" key={name}>
                 <div className="cardTop"><span>{code}</span><Icon size={32}/></div>
                 <h3>IROX <b>{name}</b></h3>
                 <h4>{title}</h4>
                 <p>{text}</p>
+                <OperationVideo src={src} poster={poster} title={`IROX ${name}`} />
                 <div className="tags">{tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
               </article>
             );
